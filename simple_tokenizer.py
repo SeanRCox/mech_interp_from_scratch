@@ -93,7 +93,7 @@ class SimpleTokenizerV2:
     def encode(self, text):
         char_count = Counter(text)
         special_chars = [key for key in char_count.keys() if not key.isalpha()]
-        special_chars = [item for item in special_chars if item not in ['<', '>', '|']]
+        special_chars = [item for item in special_chars if item not in ['<', '>', '|']] # Need to remove these special chars now
         pattern = '|'.join(re.escape(c) for c in special_chars)
         preprocessed = re.split(f'({pattern})', text)
         preprocessed = [c for c in preprocessed if c] # Remove '' values
@@ -119,5 +119,4 @@ tokenizer = SimpleTokenizerV2(vocab)
 print(tokenizer.encode(text))
 # [164, 1, 876, 1, 1430, 1, 1016, 1, 1550...]
 print(tokenizer.decode(tokenizer.encode(text)))
-
-
+# Out in the mindless void the daemon bore me <|endoftext|> I heard all things in the heaven and in the earth. I heard <|unk|> things in hell.
