@@ -16,3 +16,48 @@ print(strings)
 # BPE tokenizer breaks down unknown words into known token chunks
 # Starts with single character tokens and samples data to build
 # longer tokens based on a frequency cutoff.
+
+# Now lets create the input-target pairs using a sliding window.
+# First, tokenize the whole text
+with open("lovecraft.txt", 'r', encoding="utf-8") as file:
+    raw_text = file.read()
+
+enc_text = tokenizer.encode(raw_text)
+print(len(enc_text))
+# 6291
+
+# now create the input-target pairs
+context_size = 4
+for i in range(1, context_size+1):
+    context = enc_text[:i]
+    desired = enc_text[i]
+    print(tokenizer.decode(context), "---->", tokenizer.decode([desired]))
+
+# I ----> .
+# I. ---->  The
+# I. The ---->  Book
+# I. The Book ---->
+
+import torch 
+from torch.utils.data import Dataset, DataLoader
+
+class GPTDatasetV1(Dataset):
+    def __init__(self, text, tokenizer, max_length, stride):
+        self.input_ids = []
+        self.target_ids = []
+
+        token_ids = tokenizer.encode(text)
+
+        for i in range(0, len(token_ids) - max_length, stride):
+            input_chunk = token_ids[i : i+max_length]
+            target_chunk = token_ids[i+1 : i+1+max_length]
+            self.input_ids.append(torch.tensor(input_chunk))
+            self.target_ids.append(torch.tensor(target_chunk))
+
+    def __len__(self):
+        return len(self.input_ids)
+
+    def __getitem__(self, idx):
+        return self.input_ids[idx], self.target_ids[idx]
+
+
